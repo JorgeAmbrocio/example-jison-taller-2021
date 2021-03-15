@@ -39,7 +39,10 @@
                 return nuevoSimbolo(parseFloat(Operacion.Valor),Operacion.Tipo);
         }
         Valorizq=Evaluar(Operacion.OperandoIzq);
-        Valorder=Evaluar(Operacion.OperandoDer);
+        if(Operacion.OperandoDer!=null)
+        {
+            Valorder=Evaluar(Operacion.OperandoDer);
+        }
         switch (Operacion.Tipo) {
             case "+":
                 return nuevoSimbolo(Valorizq.Valor + Valorder.Valor, Valorizq.Tipo);
@@ -54,7 +57,7 @@
             case "%":
                 return nuevoSimbolo(Valorizq.Valor % Valorder.Valor, Valorizq.Tipo);
             case "not":
-                return nuevoSimbolo(!Valorizq.Valor,Valorder.Tipo);
+                return nuevoSimbolo(!Valorizq.Valor,Valorizq.Tipo);
             case "and":
                 return nuevoSimbolo(Valorizq.Valor && Valorder.Valor, Valorizq.Tipo);
             case "or":
@@ -180,8 +183,8 @@ Exp
     | Exp MENORI Exp        { $$=NuevaOperacion($1,$3,"<="); }
     | Exp AND Exp           { $$=NuevaOperacion($1,$3,"and"); }
     | Exp OR Exp            { $$=NuevaOperacion($1,$3,"or"); }
-    | NOT Exp               { $$=NuevaOperacionUnario($1,"not"); }
-    | MENOS Exp %prec UMENOS { $$=NuevaOperacionUnario($1,"umenos"); }
+    | NOT Exp               { $$=NuevaOperacionUnario($2,"not"); }
+    | MENOS Exp %prec UMENOS { $$=NuevaOperacionUnario($2,"umenos"); }
     | Cadena                { $$=nuevoSimbolo($1,"cadena"); }
     | NUMERO                { $$=nuevoSimbolo($1,"numero"); }
     | TRUE                  { $$=nuevoSimbolo(true,"bool"); }
