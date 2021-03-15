@@ -1,6 +1,4 @@
-/**
- * Ejemplo mi primer proyecto con Jison utilizando Nodejs en Ubuntu
- */
+
 %{
     function EjecutarBloque(LINS){
         LINS.forEach(elemento =>  
