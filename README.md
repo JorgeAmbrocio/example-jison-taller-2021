@@ -30,4 +30,5 @@ Taller explicación del uso jison.
 - Rigth indica que la recursividad y la prioridad se ejecutan por la derecha.
 - Al tener la expresión  '5 + - 5', primero se debe ejecutar el negativo y luego realizar la suma.
 
-### 
+### ¿Cómo asignar un tipo a un no terminal?
+- Se debe crear un objeto con las propiedades que requieras, ese objeto se le asigna al retorno $$ mediante una igualación y luego de eso se podrá acceder a los atributos desde el retorno $$. ($$ = {atributoA:"una cadena", atributoB:"otra cadena"}).
