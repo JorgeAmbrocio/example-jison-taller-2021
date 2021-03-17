@@ -6,42 +6,40 @@
     function EjecutarBloque(LINS)
 		{
         var retorno=null;
-        LINS.forEach(elemento =>  
-            {
-                switch(elemento.TipoInstruccion)
-                {
-                    case "imprimir":
-                      var res=Evaluar(elemento.Operacion);
-                      console.log(res.Valor);
-                      break;
-                  	case "crear":
-                    	EjecutarCrear(elemento);
-                    	break;
-                  	case "asignar":
-                    	EjecutarAsignar(elemento);
-                    	break;
-                    case "hacer":
-                    	EjecutarHacer(elemento);
-                    	break;
-                    case "si":
-                      EjecutarSi(elemento);
-                      break;
-                    case "mientras":
-                      EjecutarMientras(elemento);
-                      break;
-                    case "desde":
-                      EjecutarDesde(elemento);
-                      break;
-                    case "seleccionar":
-                      EjecutarSeleccionar(elemento);
-                      break;
-                    case "romper":
-                      retorno = elemento;
-                      break;
-                }
-            }
-        )
-        return retorno;
+        for(var elemento of LINS)
+        {
+          switch(elemento.TipoInstruccion)
+          {
+            case "imprimir":
+            var res=Evaluar(elemento.Operacion);
+              console.log(res.Valor);
+              break;
+            case "crear":
+              EjecutarCrear(elemento);
+              break;
+            case "asignar":
+              EjecutarAsignar(elemento);
+              break;
+            case "hacer":
+              EjecutarHacer(elemento);
+              break;
+            case "si":
+              EjecutarSi(elemento);
+              break;
+            case "mientras":
+              EjecutarMientras(elemento);
+              break;
+            case "desde":
+              EjecutarDesde(elemento);
+              break;
+            case "seleccionar":
+              EjecutarSeleccionar(elemento);
+              break;
+            case "romper":
+              return elemento;
+          }
+        }
+        return null;
     }
 
     //Expresion
@@ -232,11 +230,11 @@
       {
       	if(res.Valor)
         {
-        	EjecutarBloque(si.BloqueSi);
+        	return EjecutarBloque(si.BloqueSi);
         }
         else if(si.BloqueElse!=null)
         {
-        	EjecutarBloque(si.BloqueElse);
+        	return EjecutarBloque(si.BloqueElse);
         }
       }
   }
@@ -303,6 +301,9 @@
       	if(resultadoCondicion.Valor)
         {
         		var res=EjecutarBloque(mientras.Bloque);
+            if(res && res.TipoInstruccion=="romper"){
+              break;
+            }
         }
         else
         {
@@ -342,6 +343,9 @@
       if(paso.Valor > 0){
         if(inicio.Valor <= hasta.Valor){
           var res=EjecutarBloque(Desde.Bloque);
+          if(res && res.TipoInstruccion=="romper"){
+              break;
+          }
         }else{
           break;
         }  
@@ -350,6 +354,9 @@
       {
         if(inicio.Valor >= hasta.Valor){
           var res=EjecutarBloque(Desde.Bloque);
+          if(res && res.TipoInstruccion=="romper"){
+              break;
+          }
         }else{
           break;
         }

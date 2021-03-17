@@ -63,6 +63,9 @@ crear varMientras como numero = 0
 mientras varMientras < 10 hacer
   imprimir("El valor de la variable es " + varMientras)
   varMientras = varMientras + 1
+  si varMientras == 5 entonces hacer
+    romper
+  fin
 fin
 
 crear varDesde como numero 

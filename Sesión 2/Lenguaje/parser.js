@@ -473,42 +473,44 @@ _handle_error:
     function EjecutarBloque(LINS)
 		{
         var retorno=null;
-        LINS.forEach(elemento =>  
-            {
-                switch(elemento.TipoInstruccion)
-                {
-                    case "imprimir":
-                      var res=Evaluar(elemento.Operacion);
-                      console.log(res.Valor);
-                      break;
-                  	case "crear":
-                    	EjecutarCrear(elemento);
-                    	break;
-                  	case "asignar":
-                    	EjecutarAsignar(elemento);
-                    	break;
-                    case "hacer":
-                    	EjecutarHacer(elemento);
-                    	break;
-                    case "si":
-                      EjecutarSi(elemento);
-                      break;
-                    case "mientras":
-                      EjecutarMientras(elemento);
-                      break;
-                    case "desde":
-                      EjecutarDesde(elemento);
-                      break;
-                    case "seleccionar":
-                      EjecutarSeleccionar(elemento);
-                      break;
-                    case "romper":
-                      retorno = elemento;
-                      break;
-                }
-            }
-        )
-        return retorno;
+        for(var elemento of LINS)
+        {
+          switch(elemento.TipoInstruccion)
+          {
+            case "imprimir":
+            var res=Evaluar(elemento.Operacion);
+              console.log(res.Valor);
+              retorno = null
+              break;
+            case "crear":
+              retorno = EjecutarCrear(elemento);
+              break;
+            case "asignar":
+              retorno = EjecutarAsignar(elemento);
+              break;
+            case "hacer":
+              retorno = EjecutarHacer(elemento);
+              break;
+            case "si":
+              retorno = EjecutarSi(elemento);
+              break;
+            case "mientras":
+              retorno = EjecutarMientras(elemento);
+              break;
+            case "desde":
+              retorno = EjecutarDesde(elemento);
+              break;
+            case "seleccionar":
+              retorno = EjecutarSeleccionar(elemento);
+              break;
+            case "romper":
+              return elemento;
+          }
+          if(retorno){
+              return retorno;
+          }
+        }
+        return null;
     }
 
     //Expresion
@@ -699,11 +701,11 @@ _handle_error:
       {
       	if(res.Valor)
         {
-        	EjecutarBloque(si.BloqueSi);
+        	return EjecutarBloque(si.BloqueSi);
         }
         else if(si.BloqueElse!=null)
         {
-        	EjecutarBloque(si.BloqueElse);
+        	return EjecutarBloque(si.BloqueElse);
         }
       }
   }
@@ -769,7 +771,10 @@ _handle_error:
       {
       	if(resultadoCondicion.Valor)
         {
-        		var res=EjecutarBloque(mientras.Bloque);
+        	var res=EjecutarBloque(mientras.Bloque);
+            if(res && res.TipoInstruccion=="romper"){
+              break;
+            }
         }
         else
         {
@@ -809,6 +814,9 @@ _handle_error:
       if(paso.Valor > 0){
         if(inicio.Valor <= hasta.Valor){
           var res=EjecutarBloque(Desde.Bloque);
+          if(res && res.TipoInstruccion=="romper"){
+              break;
+          }
         }else{
           break;
         }  
@@ -817,6 +825,9 @@ _handle_error:
       {
         if(inicio.Valor >= hasta.Valor){
           var res=EjecutarBloque(Desde.Bloque);
+          if(res && res.TipoInstruccion=="romper"){
+              break;
+          }
         }else{
           break;
         }

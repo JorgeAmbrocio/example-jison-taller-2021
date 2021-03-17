@@ -567,28 +567,44 @@ var YYSTATE=YY_START;
 switch($avoiding_name_collisions) {
 case 0:
 break;
-case 1:console.log("Comenzo el comentario"); this.begin("Comentario")
+case 1:console.log("Comenzo el comentario"); this.begin("Comentario"); 
 break;
 case 2:
 break;
 case 3:
 break;
-case 4:console.log("Termino el comentario"); this.begin("INITIAL")
+case 4:console.log("Termino el comentario"); this.popState();
 break;
 case 5:console.log("Texto dentro del comentario: "+yy_.yytext+" :(")
 break;
-case 6:
+case 6:console.log("Comenzo una etiqueta"); this.begin("Etiqueta"); 
 break;
 case 7:
 break;
-case 8:return 4;
+case 8:
 break;
-case 9: console.error('Este es un error léxico: ' + yy_.yytext + ', en la linea: ' + yy_.yylloc.first_line + ', en la columna: ' + yy_.yylloc.first_column); 
+case 9:console.log("Atributo");
+break;
+case 10:console.log("Igual de Atributo");
+break;
+case 11:console.log("Valor")
+break;
+case 12:console.log("Termino una etiqueta de apertura"); this.popState();
+break;
+case 13:console.log("Termino una etiqueta de cierre"); this.popState();
+break;
+case 14:
+break;
+case 15:
+break;
+case 16:return 4;
+break;
+case 17: console.error('Este es texto plano: ' + yy_.yytext) 
 break;
 }
 },
-rules: [/^(?:\/\/.*)/i,/^(?:<!--)/i,/^(?:[ \r\t]+)/i,/^(?:\n)/i,/^(?:-->)/i,/^(?:[^"-->"]+)/i,/^(?:[ \r\t]+)/i,/^(?:\n)/i,/^(?:$)/i,/^(?:.)/i],
-conditions: {"Comentario":{"rules":[2,3,4,5],"inclusive":false},"INITIAL":{"rules":[0,1,6,7,8,9],"inclusive":true}}
+rules: [/^(?:\/\/.*)/i,/^(?:<!--)/i,/^(?:[ \r\t]+)/i,/^(?:\n)/i,/^(?:-->)/i,/^(?:[^"-->"]+)/i,/^(?:<[A-Za-z][A-Za-z0-9]*)/i,/^(?:[ \r\t]+)/i,/^(?:\n)/i,/^(?:[A-Za-z][A-Za-z0-9]*)/i,/^(?:=)/i,/^(?:"[^\n\"]*")/i,/^(?:>)/i,/^(?:\/>)/i,/^(?:[ \r\t]+)/i,/^(?:\n)/i,/^(?:$)/i,/^(?:.*)/i],
+conditions: {"Etiqueta":{"rules":[7,8,9,10,11,12,13],"inclusive":false},"Comentario":{"rules":[2,3,4,5],"inclusive":false},"INITIAL":{"rules":[0,1,6,14,15,16,17],"inclusive":true}}
 });
 return lexer;
 })();
