@@ -5,14 +5,15 @@
   	//Ejecuciones
     function EjecutarBloque(LINS)
 		{
+        var retorno=null;
         LINS.forEach(elemento =>  
             {
                 switch(elemento.TipoInstruccion)
                 {
                     case "imprimir":
-                        var res=Evaluar(elemento.Operacion);
-                        console.log(res.Valor);
-                        break;
+                      var res=Evaluar(elemento.Operacion);
+                      console.log(res.Valor);
+                      break;
                   	case "crear":
                     	EjecutarCrear(elemento);
                     	break;
@@ -22,9 +23,25 @@
                     case "hacer":
                     	EjecutarHacer(elemento);
                     	break;
+                    case "si":
+                      EjecutarSi(elemento);
+                      break;
+                    case "mientras":
+                      EjecutarMientras(elemento);
+                      break;
+                    case "desde":
+                      EjecutarDesde(elemento);
+                      break;
+                    case "seleccionar":
+                      EjecutarSeleccionar(elemento);
+                      break;
+                    case "romper":
+                      retorno = elemento;
+                      break;
                 }
             }
         )
+        return retorno;
     }
 
     //Expresion
@@ -84,23 +101,23 @@
             case "%":
                 return nuevoSimbolo(Valorizq.Valor % Valorder.Valor, Valorizq.Tipo);
             case "not":
-                return nuevoSimbolo(!Valorizq.Valor,Valorizq.Tipo);
+                return nuevoSimbolo(!Valorizq.Valor,"bool");
             case "and":
-                return nuevoSimbolo(Valorizq.Valor && Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor && Valorder.Valor, "bool");
             case "or":
-                return nuevoSimbolo(Valorizq.Valor || Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor || Valorder.Valor, "bool");
             case ">":
-                return nuevoSimbolo(Valorizq.Valor > Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor > Valorder.Valor, "bool");
             case "<":
-                return nuevoSimbolo(Valorizq.Valor < Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor < Valorder.Valor, "bool");
             case ">=":
-                return nuevoSimbolo(Valorizq.Valor >= Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor >= Valorder.Valor, "bool");
             case "<=":
-                return nuevoSimbolo(Valorizq.Valor <= Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor <= Valorder.Valor, "bool");
             case "==":
-                return nuevoSimbolo(Valorizq.Valor == Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor == Valorder.Valor, "bool");
             case "!=":
-                return nuevoSimbolo(Valorizq.Valor != Valorder.Valor, Valorizq.Tipo);
+                return nuevoSimbolo(Valorizq.Valor != Valorder.Valor, "bool");
         }
     }
     function NuevaOperacionUnario(Operando,Tipo)
@@ -144,6 +161,21 @@
       {
           	valor = Evaluar(crear.Expresion);
     	}
+      else
+        {
+            switch(crear.Tipo)
+            {
+                case "numero":
+                    valor=nuevoSimbolo(0,"numero");
+                    break;
+                case "cadena":
+                    valor=nuevoSimbolo("","cadena");
+                    break;
+                case "bool":
+                    valor=nuevoSimbolo(false,"bool");
+                    break;
+            }
+        }
       
       // crear objeto a insertar
       tablaSimbolos.set(crear.Id, valor);
@@ -154,7 +186,7 @@
     	return {
       		Id:id,
         	Expresion: expresion,
-        	TipoInstruccion:"asignar"
+        	TipoInstruccion: "asignar"
       }
     }
     
@@ -177,6 +209,12 @@
       		tablaSimbolos.set(asignar.Id, valor);
       }
     }
+  //Romper
+  const Romper = function(){
+    return {
+      TipoInstruccion:"romper"
+    }
+  }
 	//Si	 
 	const Si=function(Condicion,BloqueSi,BloqueElse)
   {
@@ -187,7 +225,6 @@
         TipoInstruccion:"si"
       }
   }
-  
   function EjecutarSi (si)
 	{
     	var res = Evaluar(si.Condicion);
@@ -197,11 +234,53 @@
         {
         	EjecutarBloque(si.BloqueSi);
         }
-        else if(BloqueElse!=null)
+        else if(si.BloqueElse!=null)
         {
         	EjecutarBloque(si.BloqueElse);
         }
       }
+  }
+  //Casos
+  const Caso = function(Expresion,Bloque)
+  {
+    return {
+      Expresion:Expresion,
+      Bloque:Bloque
+    }
+  }
+
+  const Seleccionar = function(Expresion, LCasos, NingunoBloque)
+  {
+    return  {
+      Expresion: Expresion,
+      LCasos: LCasos,
+      NingunoBloque: NingunoBloque,
+      TipoInstruccion: "seleccionar"
+    }
+  }
+
+  function EjecutarSeleccionar(seleccionar)
+  {
+    var ejecutado=false;
+    for(var elemento of seleccionar.LCasos)
+    {
+        var condicion=Evaluar(NuevaOperacion(seleccionar.Expresion,elemento.Expresion,"=="));
+        if(condicion.Tipo=="bool"){
+          if(condicion.Valor || ejecutado){
+            ejecutado=true;
+            var res = EjecutarBloque(elemento.Bloque)
+            if(res && res.TipoInstruccion=="romper"){
+              break;
+            }
+          }
+        }else{
+          break
+        }
+    }
+    if(seleccionar.NingunoBloque && !ejecutado){
+      EjecutarBloque(seleccionar.NingunoBloque);
+    }
+    return null;
   }
 
 	//Mientras
@@ -218,8 +297,8 @@
 	{
     while(true)
     {
-    	var resultadoCondicion = evaluar(mientras.Condicion)
-      if(resultadoCondicion.Tipo==bool)
+    	var resultadoCondicion = Evaluar(mientras.Condicion)
+      if(resultadoCondicion.Tipo=="bool")
       {
       	if(resultadoCondicion.Valor)
         {
@@ -243,35 +322,42 @@
     }
   }
   
-  function EjecutarDesde(Desde){
+  function EjecutarDesde(Desde)
+  {
     //controlador de la condicion
-    var contador = Evaluar(Desde.ExpDesde);
+    if( Desde.ExpDesde.TipoInstruccion == "crear" )
+    {
+      EjecutarCrear(Desde.ExpDesde);
+    }
+    else
+    {
+      EjecutarAsignar(Desde.ExpDesde);
+    }
     //mientras no se llegue al hasta
     var paso = Evaluar(Desde.ExpPaso);
     var hasta = Evaluar(Desde.ExpHasta);
-    
+    var Simbolo=nuevoSimbolo(Desde.ExpDesde.Id,"ID")
     while(true){
-      if(paso > 0){
-        
-        if(contador <= hasta){
-        var res=EjecutarBloque(Desde.Bloque);
-          contador = contador + paso;
+      var inicio=Evaluar(Simbolo)
+      if(paso.Valor > 0){
+        if(inicio.Valor <= hasta.Valor){
+          var res=EjecutarBloque(Desde.Bloque);
         }else{
           break;
-        }
-        
-      }else{
-        if(contador >= hasta){
-        var res=EjecutarBloque(Desde.Bloque);
-          contador = contador + paso;
+        }  
+      }
+      else
+      {
+        if(inicio.Valor >= hasta.Valor){
+          var res=EjecutarBloque(Desde.Bloque);
         }else{
           break;
         }
       }
+      EjecutarAsignar(Asignar(Desde.ExpDesde.Id,NuevaOperacion(Simbolo,paso,"+")))
     }
   }
 	
-  
 %}
 /* Definición Léxica */
 %lex
@@ -288,6 +374,7 @@
 "imprimir"			return "Rimprimir";
 "crear"					return "Rcrear"; // declaración
 "como"					return "Rcomo";
+"romper"        return "Rromper"
 
 "sino"					return "Rsino";
 "si"						return "Rsi"; // if
@@ -303,7 +390,7 @@
 "fin"						return "Rfin";
 
 "seleccionar"		return "Rseleccionar";// select case
-"caso"					return "Rcasos";
+"caso"					return "Rcaso";
 "ninguno"				return "Rninguno";
 
 // TIPOS
@@ -377,7 +464,9 @@ INS
 		| SI					{ $$ = $1; }
 		| MIENTRAS		{ $$ = $1; }
 		| DESDE				{ $$ = $1; }
-		| HASTA				{ $$ = $1; }   
+		| HASTA				{ $$ = $1; } 
+    | CASOS       { $$ = $1; }
+    | Rromper     { $$ = Romper(); }
 ;
 
 CREAR
@@ -391,26 +480,37 @@ ASIGNAR
 
 SI 
 	: Rsi EXP Rentonces BLOQUE 								{ $$ = Si($2,$4,null); }
-	| Rsi EXP Rentonces BLOQUE Rsino BLOQUE		{ $$ = nSi($2,$4,$6); }
-;	
+	| Rsi EXP Rentonces BLOQUE Rsino BLOQUE		{ $$ = Si($2,$4,$6); }
+;
+
+CASOS
+  : Rseleccionar EXP LCASOS Rninguno BLOQUE     { $$=Seleccionar($2,$3,$5); }
+  | Rseleccionar EXP LCASOS                     { $$=Seleccionar($2,$3,null); }
+;
+
+LCASOS
+  : Rcaso EXP BLOQUE                      { $$=[]; $$.push(Caso($2,$3)); }
+  | LCASOS Rcaso EXP BLOQUE               { $$=$1; $$.push(Caso($3,$4)); }
+;
 
 MIENTRAS
 	: Rmientras EXP BLOQUE { $$=new Mientras($2, $3); }
 ;
 
 BLOQUE
-	: Rhacer LIns Rfin  {$$ = $2;}
+	: Rhacer LINS Rfin  {$$ = $2;}
 	| Rhacer Rfin				{$$ = [];}
 ;
 
 DESDE
-	:Rdesde E Rhasta E Rpaso E BLOQUE { $$ = Desde($2, $4, $6); }
+	:Rdesde ASIGNAR Rhasta EXP Rpaso EXP BLOQUE { $$ = Desde($2, $4, $6, $7); }
+  |Rdesde CREAR Rhasta EXP Rpaso EXP BLOQUE { $$ = Desde($2, $4, $6, $7); }
 ;
 
 TIPO
-	:Rnumero			{$$=$1}
-  |Rcadena			{$$=$1}
-  |Rbooleano		{$$=$1}
+	:Rnumero			{$$="numero"}
+  |Rcadena			{$$="cadena"}
+  |Rbooleano		{$$="bool"}
 ;
 
 EXP 
@@ -431,7 +531,7 @@ EXP
     | MENOS EXP %prec UMENOS { $$=NuevaOperacionUnario($2,"umenos"); }
     | Cadena                { $$=nuevoSimbolo($1,"cadena"); }
 		| ID										{ $$=nuevoSimbolo($1,"ID");}
-    | NUMERO                { $$=nuevoSimbolo($1,"numero"); }
+    | NUMERO                { $$=nuevoSimbolo(parseFloat($1),"numero"); }
     | TRUE                  { $$=nuevoSimbolo(true,"bool"); }
     | FALSE                 { $$=nuevoSimbolo(false,"bool"); }
     | PARIZQ EXP PARDER     { $$=$2 }
