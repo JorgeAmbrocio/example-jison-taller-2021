@@ -18,6 +18,7 @@ Taller explicación del uso jison.
 ### Extensiones
 - Extensión para visualizar json [Extensión chrome|edge](https://chrome.google.com/webstore/detail/json-viewer-pro/eifflpmocdbdmepbjaopkkhbfmdgijcc?hl=es) 
 - Extensión para visualizar json en firefox [Complemento firefox](https://addons.mozilla.org/es/firefox/addon/json-beautifier-editor/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search)
+- Extensión para suporte jison en vs code [Extensión vs code](https://marketplace.visualstudio.com/items?itemName=cruzelante098.jison-syntax-highlight)
 
 ## PREGUNTAS
 ### ¿Para qué sirve %prec en la producción?
@@ -32,3 +33,7 @@ Taller explicación del uso jison.
 
 ### ¿Cómo asignar un tipo a un no terminal?
 - Se debe crear un objeto con las propiedades que requieras, ese objeto se le asigna al retorno $$ mediante una igualación y luego de eso se podrá acceder a los atributos desde el retorno $$. ($$ = {atributoA:"una cadena", atributoB:"otra cadena"}).
+
+### ¿Por qué usaríamos estados en el analizador léxico?
+- Si tomamos como ejemplo el lenguaje PHP inscrustado en html,el analizador léxico iniciaría en el estado "ReadHTML" para reconocer únicamente etiquetas html y al momento de reconocer el inicio de una instrucción php "<?php echo '<p>Hola Mundo</p>'; ?>" iría un estado "ReadPHP" en el cuál ya se pueden identificar los tokens pertenecientes a php.
+
