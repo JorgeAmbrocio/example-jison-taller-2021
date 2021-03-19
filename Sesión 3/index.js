@@ -11,6 +11,50 @@ parse.parse(`
     retorno ("Mi numero es " + a)
   fin
 
+  funcion Comparar(a como numero, b como numero) como numero
+  hacer
+    si a > b entonces hacer
+     retorno(a)
+    fin
+    sino hacer
+      retorno(b)
+    fin
+  fin
+
+  funcion DiaSemana(a como numero) como cadena
+  hacer
+    seleccionar a 
+      caso 1 hacer
+        retorno("Lunes")
+      fin
+      caso 2 hacer
+        retorno("Martes")
+      fin
+      caso 3 hacer
+        retorno("Miercoles")
+      fin
+      caso 4 hacer
+        retorno("Jueves")
+      fin
+      caso 5 hacer
+        retorno("Viernes")
+      fin
+      caso 6 hacer
+        retorno("Sabado")
+      fin
+      caso 7 hacer
+        retorno("Domingo")
+      fin
+      ninguno hacer
+        retorno("Error")
+      fin
+  fin
+
+  crear a como numero = Comparar(10,20)
+  imprimir("El valor mas grande es: " + a)
+
+  imprimir("El dia de la semana es: " + DiaSemana(1))
+
   miMetodo(miFuncion(1))
 `)
 

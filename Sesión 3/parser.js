@@ -629,7 +629,7 @@ _handle_error:
             case "numero":
                 return nuevoSimbolo(parseFloat(Operacion.Valor),Operacion.Tipo);
           	case "ID":
-                temp=ent;
+                var temp=ent;
                 while(temp!=null)
                 {
                     if(temp.tablaSimbolos.has(Operacion.Valor))
@@ -997,6 +997,11 @@ _handle_error:
                         pilaCiclosSw.pop();
                   		return
                 	}
+                    else if (res)
+                    {
+                        pilaCiclosSw.pop();
+                        return res
+                    }
               	}
             }
           	else
@@ -1038,6 +1043,11 @@ _handle_error:
                 	{
                 		break;
                 	}
+                    else if (res)
+                    {
+                        pilaCiclosSw.pop();
+                        return res
+                    }
             	}
             	else
             	{
@@ -1106,6 +1116,11 @@ _handle_error:
                     if(res && res.TipoInstruccion=="romper")
                     {
                         break;
+                    }
+                    else if (res)
+                    {
+                        pilaCiclosSw.pop();
+                        return res
                     }
                 }
                 else
