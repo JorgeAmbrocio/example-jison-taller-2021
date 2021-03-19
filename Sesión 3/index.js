@@ -1,6 +1,20 @@
 const parse = require('./parser');
 
+parse.parse(`
+  funcion miMetodo(a como cadena)
+  hacer
+    imprimir("Esto viene en los parametros " + a)
+  fin
 
+  funcion miFuncion(a como numero) como cadena
+  hacer
+    retorno ("Mi numero es " + a)
+  fin
+
+  miMetodo(miFuncion(1))
+`)
+
+/*
 parse.parse(`
 // tipos que el lenguaje soporta
 // cadena
@@ -77,3 +91,4 @@ desde varDesde = 20 hasta 10 paso -1 hacer
 fin
 
 `);
+*/

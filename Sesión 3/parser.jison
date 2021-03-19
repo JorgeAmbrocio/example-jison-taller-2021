@@ -1,5 +1,6 @@
 %{
     var pilaCiclosSw = [];
+    var pilaFunciones = [];
   	// entorno
   	const Entorno = function(anterior)
     {
@@ -41,6 +42,23 @@
                     break;
                 case "seleccionar":
                     retorno = EjecutarSeleccionar(elemento, ent);
+                    break;
+                case "funcion":
+                    retorno = EjecutarFuncion(elemento,EntornoGlobal);
+                    break;
+                case "llamada":
+                    EjecutarLlamada(elemento,ent);
+                    retorno = null;
+                    break;
+                case "retorno":
+                    if (pilaFunciones.length>0)
+                    {
+                        retorno = elemento.Expresion;
+                    }
+                    else
+                    {
+                        console.log("Intruccion retorno fuera de una funcion")
+                    }
                     break;
                 case "romper":
                     if (pilaCiclosSw.length>0)
@@ -110,6 +128,9 @@
                 }
                 console.log("No existe la variable " + Operacion.Valor);
                 return nuevoSimbolo("@error@","error");
+            case "funcion":
+                var res = EjecutarLlamada(Llamada(Operacion.Valor.Id,Operacion.Valor.Params), ent)
+                return res
         }
       	//Operaciones
         Valorizq=Evaluar(Operacion.OperandoIzq, ent);
@@ -379,12 +400,21 @@
         console.log("No se encontro la variable ",asignar.Id);
     }
 	//Romper
-  	const Romper = function(){
+  	const Romper = function()
+    {
       	return {
           TipoInstruccion:"romper"
         }
     }
 	
+    const Retorno = function(Expresion)
+    {
+        return {
+            Expresion:Expresion,
+        	TipoInstruccion: "retorno"
+        }
+    }
+
     //Si	 
 	const Si=function(Condicion,BloqueSi,BloqueElse)
     {
@@ -590,6 +620,123 @@
         pilaCiclosSw.pop();
         return;
 	}
+    //Funcion
+    const Funcion=function(Id, Parametros, Tipo, Bloque)
+    {
+        return{
+            Id: Id,
+            Parametros: Parametros,
+            Bloque: Bloque,
+            Tipo: Tipo,
+            TipoInstruccion: "funcion"
+        }
+    }
+
+    function EjecutarFuncion(elemento,ent)
+    {
+        var nombrefuncion = elemento.Id + "$";
+        for(var Parametro of elemento.Parametros)
+        {
+            nombrefuncion+=Parametro.Tipo;
+        }
+        if (ent.tablaSimbolos.has(nombrefuncion))
+      	{
+            console.log("La funcion ",crear.Id," ya ha sido declarada");
+      		return;
+      	}
+        ent.tablaSimbolos.set(nombrefuncion, elemento);
+    }
+
+    //Llamada
+    const Llamada=function(Id,Params)
+    {
+        return {
+            Id: Id,
+            Params: Params,
+            TipoInstruccion: "llamada"
+        }
+    }
+
+    function EjecutarLlamada(Llamada,ent)
+    {
+        var nombrefuncion = Llamada.Id+"$";
+        var Resueltos = [];
+        for(var param of Llamada.Params)
+        {
+            var valor = Evaluar(param,ent);
+            nombrefuncion += valor.Tipo;
+            Resueltos.push(valor);
+        }
+        var temp = ent;
+        var simboloFuncion = null;
+      	while(temp!=null)
+        {
+            if (temp.tablaSimbolos.has(nombrefuncion))
+            {
+                // evaluar el resultado de la expresión 
+                simboloFuncion = temp.tablaSimbolos.get(nombrefuncion);	
+                break;
+            }
+            temp=temp.anterior;
+        }
+        if(!simboloFuncion){
+            console.log("No se encontró la funcion "+Llamada.Id + " con esa combinacion de parametros")
+            return nuevoSimbolo("@error@","error");
+        } 
+        pilaFunciones.push(Llamada.Id);
+        var nuevo=Entorno(EntornoGlobal)
+        var index=0;
+        for(var crear of simboloFuncion.Parametros)
+        {
+            crear.Expresion=Resueltos[index];
+            EjecutarCrear(crear,nuevo);
+            index++;
+        }
+        var retorno=nuevoSimbolo("@error@","error");
+        var res = EjecutarBloque(simboloFuncion.Bloque, nuevo)
+        if(res)
+        {
+            if(res.Tipo=="void" )
+            {
+                if(simboloFuncion.Tipo!="void")
+                {
+                    console.log("No se esperaba un retorno");
+                    retorno=nuevoSimbolo("@error@","error");
+                }
+                else
+                {
+                    retorno=nuevoSimbolo("@vacio@","vacio")
+                }
+            }
+            else
+            {
+                var exp=Evaluar(res,nuevo);
+                if(exp.Tipo!=simboloFuncion.Tipo)
+                {
+                    console.log("El tipo del retorno no coincide");
+                    retorno=nuevoSimbolo("@error@","error");
+                }
+                else
+                {
+                    retorno=exp;
+                }
+            }
+        }
+        else
+        {
+            if(simboloFuncion.Tipo!="void")
+            {
+                console.log("Se esperaba un retorno");
+                retorno=nuevoSimbolo("@error@","error");
+            }
+            else
+            {
+                retorno=nuevoSimbolo("@vacio@","vacio")
+            }
+        }
+        pilaFunciones.pop();
+        return retorno;
+    }
 %}
 /* Definición Léxica */
 %lex
@@ -606,8 +753,8 @@
 "imprimir"				return "Rimprimir";
 "crear"					return "Rcrear"; // declaración
 "como"					return "Rcomo";
-"romper"        		return "Rromper"
-
+"romper"        		return "Rromper";
+"retorno"               return "Rretorno";
 "sino"					return "Rsino";
 "si"					return "Rsi"; // if
 "entonces"				return "Rentonces";
@@ -687,8 +834,8 @@ INI
 ;
 
 LINS 
-    : LINS INS  { $$=$1; $$.push($2); }
-    | INS       { $$=[]; $$.push($1); }
+    : LINS INS      { $$=$1; $$.push($2); }
+    | INS           { $$=[]; $$.push($1); }
 ;
 
 
@@ -702,7 +849,15 @@ INS
     | HASTA		                    { $$ = $1; } 
     | CASOS                         { $$ = $1; }
     | Rromper                       { $$ = Romper(); }
+    | FUNCION                       { $$ = $1; }
+    | LLAMADA                       { $$ = $1; }
+    | RETORNO
 	//| error INS {console.log("Se recupero en ",yytext," (",this._$.last_line,",",this._$.last_column,")");}
+;
+
+RETORNO   
+    : Rretorno PARIZQ EXP PARDER    { $$ = Retorno($3); }
+    | Rretorno PARIZQ PARDER        { $$ = Retorno(Simbolo("@Vacio@","void")); }
 ;
 
 CREAR
@@ -712,13 +867,15 @@ CREAR
 ;
 
 FUNCION 
-    :Rfuncion ID Rcomo TIPO BLOQUE      {}
-    |Rfuncion ID BLOQUE                 {}
+    :Rfuncion ID PARIZQ PARDER Rcomo TIPO BLOQUE                { $$ = Funcion($2,[],$6,$7); }
+    |Rfuncion ID PARIZQ PARDER BLOQUE                           { $$ = Funcion($2,[],"void",$5); }
+    |Rfuncion ID PARIZQ PARAMETROS PARDER Rcomo TIPO BLOQUE     { $$ = Funcion($2,$4,$7,$8); }
+    |Rfuncion ID PARIZQ PARAMETROS PARDER BLOQUE                { $$ = Funcion($2,$4,"void",$6); }
 ;
 
 PARAMETROS
-    :PARAMETROS COMA ID Rcomo TIPO      { $$=[];$$.push }
-    |ID Rcomo TIPO                      { $$=[];$$.push(Crear($1,$3)) }
+    :PARAMETROS COMA ID Rcomo TIPO      { $$=$1;$$.push(Crear($3,$5,null)) }
+    |ID Rcomo TIPO                      { $$=[];$$.push(Crear($1,$3,null)) }
 ;
 
 ASIGNAR
@@ -760,32 +917,44 @@ DESDE
 	|Rdesde error Rfin {console.log("Se recupero en ",yytext," (",this._$.last_line,",",this._$.last_column,")");}
 ;
 
+LLAMADA 
+    : ID PARIZQ PARDER          { $$=Llamada($1,[]); }
+    | ID PARIZQ L_EXP PARDER    { $$=Llamada($1,$3); }
+;
+
 TIPO
-	:Rnumero			{$$="numero"}
-	|Rcadena			{$$="cadena"}
-	|Rbooleano		    {$$="bool"}
+	:Rnumero			{ $$="numero" }
+	|Rcadena			{ $$="cadena" }
+	|Rbooleano		    { $$="bool" }
 ;
 
 EXP 
-    : EXP MAS EXP           { $$=NuevaOperacion($1,$3,"+"); }
-    | EXP MENOS EXP         { $$=NuevaOperacion($1,$3,"-"); }
-    | EXP POR EXP           { $$=NuevaOperacion($1,$3,"*"); }
-    | EXP DIV EXP           { $$=NuevaOperacion($1,$3,"/"); }
-    | EXP MOD EXP           { $$=NuevaOperacion($1,$3,"%"); }
-    | EXP MENOR EXP         { $$=NuevaOperacion($1,$3,"<"); }
-    | EXP MAYOR EXP         { $$=NuevaOperacion($1,$3,">"); }
-    | EXP DIFERENTE EXP     { $$=NuevaOperacion($1,$3,"!="); }
-    | EXP IGUALADAD EXP     { $$=NuevaOperacion($1,$3,"=="); }
-    | EXP MAYORI EXP        { $$=NuevaOperacion($1,$3,">="); }
-    | EXP MENORI EXP        { $$=NuevaOperacion($1,$3,"<="); }
-    | EXP AND EXP           { $$=NuevaOperacion($1,$3,"and"); }
-    | EXP OR EXP            { $$=NuevaOperacion($1,$3,"or"); }
-    | NOT EXP               { $$=NuevaOperacionUnario($2,"not"); }
-    | MENOS EXP %prec UMENOS { $$=NuevaOperacionUnario($2,"umenos"); }
-    | Cadena                { $$=nuevoSimbolo($1,"cadena"); }
-	| ID					{ $$=nuevoSimbolo($1,"ID");}
-    | NUMERO                { $$=nuevoSimbolo(parseFloat($1),"numero"); }
-    | TRUE                  { $$=nuevoSimbolo(true,"bool"); }
-    | FALSE                 { $$=nuevoSimbolo(false,"bool"); }
-    | PARIZQ EXP PARDER     { $$=$2 }
+    : EXP MAS EXP               { $$=NuevaOperacion($1,$3,"+"); }
+    | EXP MENOS EXP             { $$=NuevaOperacion($1,$3,"-"); }
+    | EXP POR EXP               { $$=NuevaOperacion($1,$3,"*"); }
+    | EXP DIV EXP               { $$=NuevaOperacion($1,$3,"/"); }
+    | EXP MOD EXP               { $$=NuevaOperacion($1,$3,"%"); }
+    | EXP MENOR EXP             { $$=NuevaOperacion($1,$3,"<"); }
+    | EXP MAYOR EXP             { $$=NuevaOperacion($1,$3,">"); }
+    | EXP DIFERENTE EXP         { $$=NuevaOperacion($1,$3,"!="); }
+    | EXP IGUALADAD EXP         { $$=NuevaOperacion($1,$3,"=="); }
+    | EXP MAYORI EXP            { $$=NuevaOperacion($1,$3,">="); }
+    | EXP MENORI EXP            { $$=NuevaOperacion($1,$3,"<="); }
+    | EXP AND EXP               { $$=NuevaOperacion($1,$3,"and"); }
+    | EXP OR EXP                { $$=NuevaOperacion($1,$3,"or"); }
+    | NOT EXP                   { $$=NuevaOperacionUnario($2,"not"); }
+    | MENOS EXP %prec UMENOS    { $$=NuevaOperacionUnario($2,"umenos"); }
+    | Cadena                    { $$=nuevoSimbolo($1,"cadena"); }
+	| ID					    { $$=nuevoSimbolo($1,"ID");}
+    | ID PARIZQ PARDER          { $$=nuevoSimbolo({Id:$1,Params:[]},"funcion"); }
+    | ID PARIZQ L_EXP PARDER    { $$=nuevoSimbolo({Id:$1,Params:$3},"funcion"); }
+    | NUMERO                    { $$=nuevoSimbolo(parseFloat($1),"numero"); }
+    | TRUE                      { $$=nuevoSimbolo(true,"bool"); }
+    | FALSE                     { $$=nuevoSimbolo(false,"bool"); }
+    | PARIZQ EXP PARDER         { $$=$2 }
+;
+
+L_EXP 
+    :L_EXP COMA EXP             { $$=$1;$$.push($3); }
+    |EXP                        { $$=[];$$.push($1); }
 ;
