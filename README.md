@@ -21,9 +21,9 @@ Taller explicación del uso jison.
 - Extensión para suporte jison en vs code [Extensión vs code](https://marketplace.visualstudio.com/items?itemName=cruzelante098.jison-syntax-highlight)
 
 ## SESIONES GRABADAS
-- [Sesión 1] (https://drive.google.com/file/d/10tHh5h5yAFmsOgpOqc62AUmJCrF061NX/view?usp=sharing)
-- [Sesión 2] (https://drive.google.com/file/d/1rZ0rv_Xn1A0oMYz5oLUWP1ywV_fr68oM/view?usp=sharing)
-- Sesión 3 Pendiente de compartir
+- [Parte 1] (https://drive.google.com/file/d/10tHh5h5yAFmsOgpOqc62AUmJCrF061NX/view?usp=sharing)
+- [Parte 2] (https://drive.google.com/file/d/1rZ0rv_Xn1A0oMYz5oLUWP1ywV_fr68oM/view?usp=sharing)
+- Parte 3 3 Pendiente de compartir
 
 ## PREGUNTAS
 ### ¿Para qué sirve %prec en la producción?
