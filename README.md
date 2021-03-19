@@ -20,6 +20,11 @@ Taller explicación del uso jison.
 - Extensión para visualizar json en firefox [Complemento firefox](https://addons.mozilla.org/es/firefox/addon/json-beautifier-editor/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search)
 - Extensión para suporte jison en vs code [Extensión vs code](https://marketplace.visualstudio.com/items?itemName=cruzelante098.jison-syntax-highlight)
 
+## SESIONES GRABADAS
+- [Parte 1] (https://drive.google.com/file/d/10tHh5h5yAFmsOgpOqc62AUmJCrF061NX/view?usp=sharing)
+- [Parte 2] (https://drive.google.com/file/d/1rZ0rv_Xn1A0oMYz5oLUWP1ywV_fr68oM/view?usp=sharing)
+- Parte 3 3 Pendiente de compartir
+
 ## PREGUNTAS
 ### ¿Para qué sirve %prec en la producción?
 - Los números negativos utilizan el mismo caracter utilizado para la resta. Se coloca la expresión %prec para asignarle de manera especial la precendecia adecuada.
