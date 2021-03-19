@@ -1,5 +1,6 @@
 const parse = require('./parser');
 
+
 parse.parse(`
 // tipos que el lenguaje soporta
 // cadena
